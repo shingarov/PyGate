@@ -5,22 +5,22 @@
 
 import pdb, traceback
 import inspect, sys, json
-import socket, SocketServer
+import socket, socketserver
 import claripy, angr, pyvex, archinfo
 
 e = {}
 
-class PythonGate(SocketServer.StreamRequestHandler):
+class PythonGate(socketserver.StreamRequestHandler):
 
     def handle_one_packet(self):
         try:
-            requestline = self.rfile.readline()
+            requestline = self.rfile.readline().decode()
             sys.stdout.write("> %s" % requestline)
             answer = self.getAnswer(requestline) + '\r\n'
-            self.wfile.write(answer)
+            self.wfile.write(answer.encode())
             sys.stdout.write("< %s" % answer)
             self.wfile.flush()
-        except socket.timeout, e:
+        except socket.timeout as e:
             os._exit(0)
             return
 
@@ -66,4 +66,4 @@ class PythonGate(SocketServer.StreamRequestHandler):
     def deser(self, serializedString):
         return json.loads(serializedString)
 
-SocketServer.TCPServer(('',7000), PythonGate).serve_forever()
+socketserver.TCPServer(('',7000), PythonGate).serve_forever()
