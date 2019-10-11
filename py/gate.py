@@ -7,6 +7,9 @@ import pdb, traceback
 import inspect, sys, json
 import socket, SocketServer
 import claripy, angr, pyvex, archinfo
+from pyvex.const import *
+from pyvex.expr  import *
+from pyvex.stmt  import *
 
 e = {}
 
