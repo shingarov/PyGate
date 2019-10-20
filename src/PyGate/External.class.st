@@ -58,7 +58,7 @@ External >> dir [
 External >> gtInspectorItemsIn: composite [
 	<gtInspectorPresentationOrder: 40>
 	| everything |
-	everything := self dir collect: [ :key | key -> (P compute: self ref, '.', key) ].
+	everything := self dir collect: [ :key | key -> ([P compute: self ref, '.', key] on: Error do: ['????? error getting ', key]) ].
 	^ (composite fastTable)
 		title: 'dir()';
 		display: [ everything ];

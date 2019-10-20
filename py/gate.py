@@ -6,7 +6,12 @@
 import pdb, traceback
 import inspect, sys, json
 import socket, socketserver
-import claripy, angr, pyvex, archinfo
+import angr, archinfo
+from claripy import *
+from pyvex.const import *
+from pyvex.expr  import *
+from pyvex.stmt  import *
+from pyvex       import *
 
 e = {}
 
