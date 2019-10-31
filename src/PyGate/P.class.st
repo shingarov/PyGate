@@ -10,7 +10,8 @@ Class {
 	#name : #P,
 	#superclass : #Object,
 	#instVars : [
-		'socket'
+		'socket',
+		'mutex'
 	],
 	#classInstVars : [
 		'current',
@@ -58,10 +59,31 @@ P class >> current [
 ]
 
 { #category : #'as yet unclassified' }
+P class >> decodeByteArray: anExternalVar [ 
+	^(P compute: '[aByte for aByte in ', anExternalVar ref, ']') asByteArray 
+]
+
+{ #category : #'as yet unclassified' }
+P class >> decodeBytes: anExternalVar [ 
+	^(P compute: '[aByte for aByte in ', anExternalVar ref, ']') asByteArray 
+]
+
+{ #category : #'as yet unclassified' }
 P class >> decodeClass: anExternalID [
 	"anExternalID points to a Python class.
 	Instantiate a PyClass."
 	^PyClass fromExternalID: anExternalID 
+]
+
+{ #category : #'wire protocol' }
+P class >> decodeDict: var [ 
+	| keys assocs |
+	keys := P eval: 'list(', var ref, ')'.
+	assocs := keys collect: [ :aKey |
+		| keyRepr |
+		keyRepr := aKey representSmalltalkInPython.
+		aKey -> (P compute: var ref, '[', keyRepr, ']') ].
+	^Dictionary newFromAssociations: assocs
 ]
 
 { #category : #'wire protocol' }
@@ -105,8 +127,11 @@ P class >> deserializeCustomVar: var [
 	| pythonClassName smalltalkClass |
 	var pointsToClass ifTrue: [ ^self decodeClass: var ].
 	pythonClassName := var pythonClassName.
+	pythonClassName = 'dict' ifTrue: [ ^self decodeDict: var ].
 	pythonClassName = 'list' ifTrue: [ ^self decodeList: var ].
 	pythonClassName = 'tuple' ifTrue: [ ^self decodeList: var ].
+	pythonClassName = 'bytes' ifTrue: [ ^self decodeBytes: var ].
+	pythonClassName = 'bytearray' ifTrue: [ ^self decodeByteArray: var ].
 	smalltalkClass := P classToDeserialize: var.
 	^smalltalkClass fromExternalID: var
 ]
@@ -183,6 +208,13 @@ P class >> send: aString [
 	
 ]
 
+{ #category : #'as yet unclassified' }
+P class >> sendAndAssignByteArray: aByteArray [
+	"ByteArray is special in that although it can be JSONed successfully,
+	the result is alist  of integers, which is not what we want."
+	^P evalAndAssign: aByteArray representSmalltalkInPython
+]
+
 { #category : #'wire protocol' }
 P class >> sendAndAssignList: aSequenceableCollection [
 	| s |
@@ -195,6 +227,8 @@ P class >> sendAndAssignList: aSequenceableCollection [
 { #category : #'wire protocol' }
 P class >> sendAndAssignObject: anObject [
 	| var |
+	
+	(anObject isKindOf: ByteArray) ifTrue: [ ^self sendAndAssignByteArray: anObject ].
 	var := ExternalVar new.
 	self sendObject: anObject andAssignTo: var name.
 	^var
@@ -203,6 +237,19 @@ P class >> sendAndAssignObject: anObject [
 { #category : #'as yet unclassified' }
 P class >> sendAndFetchObject: x [ 
 	^P fetchVar: (P sendAndAssignObject: x)
+]
+
+{ #category : #'as yet unclassified' }
+P class >> sendByteArray: aByteArray andAssignTo: aVariable [
+	"ByteArray is special in that although it can be JSONed successfully,
+	the result is alist  of integers, which is not what we want."
+	| answer |
+	answer := self current send: ':', aVariable.
+	answer = ':' ifFalse: [ self error ].
+	answer := self current send: aByteArray representSmalltalkInPython.
+	answer = '+' ifFalse: [ self error ].
+	^ExternalVar named: aVariable 
+	
 ]
 
 { #category : #private }
@@ -220,7 +267,8 @@ P class >> sendObject: anObject andAssignTo: aVariable [
 { #category : #connection }
 P >> connect [
 	P initDeserializationRegistry. "TODO: This does not belong here!"
-	socket := SocketStream openConnectionToHost: self ip port: 7000
+	socket := SocketStream openConnectionToHost: self ip port: 7000.
+	mutex := Mutex new 
 ]
 
 { #category : #connection }
@@ -235,7 +283,7 @@ P >> isConnected [
 
 { #category : #connection }
 P >> send: aString [
-	socket nextPutAllFlush: aString, String crlf.
-	^socket upToAll: String crlf 
+	^mutex critical: [ socket nextPutAllFlush: aString, String crlf.
+		socket upToAll: String crlf ]
 	
 ]

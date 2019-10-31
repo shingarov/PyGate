@@ -35,6 +35,19 @@ External class >> var: v [
 ]
 
 { #category : #access }
+External >> @ attrName [
+	^self at: attrName
+]
+
+{ #category : #dispatching }
+External >> _dispatch: id arguments: args ifFail: failBlock [
+	| callable |
+	callable := self ref, '.', id.
+	^GenericPyObject create: callable constructorSequentialArgs: args
+		 
+]
+
+{ #category : #access }
 External >> at: attrName [
 	^P compute: self ref, '.', attrName 
 ]
@@ -52,6 +65,16 @@ External >> at: attrName put: x [
 { #category : #access }
 External >> dir [
 	^P compute: 'dir(', self ref, ')'
+]
+
+{ #category : #dispatching }
+External >> doesNotUnderstand: aMessage [
+	| id args |
+	id := aMessage selector asString copyUpTo: $:.
+	args := aMessage arguments.
+	^self _dispatch: id
+		arguments: args
+		ifFail: [ ^super doesNotUnderstand: aMessage ]
 ]
 
 { #category : #GT }
