@@ -58,6 +58,11 @@ P class >> current [
 ]
 
 { #category : #'as yet unclassified' }
+P class >> decodeByteArray: anExternalVar [ 
+	^(P compute: '[aByte for aByte in ', anExternalVar ref, ']') asByteArray 
+]
+
+{ #category : #'as yet unclassified' }
 P class >> decodeClass: anExternalID [
 	"anExternalID points to a Python class.
 	Instantiate a PyClass."
@@ -107,6 +112,7 @@ P class >> deserializeCustomVar: var [
 	pythonClassName := var pythonClassName.
 	pythonClassName = 'list' ifTrue: [ ^self decodeList: var ].
 	pythonClassName = 'tuple' ifTrue: [ ^self decodeList: var ].
+	pythonClassName = 'bytes' ifTrue: [ ^self decodeByteArray: var ].
 	smalltalkClass := P classToDeserialize: var.
 	^smalltalkClass fromExternalID: var
 ]
