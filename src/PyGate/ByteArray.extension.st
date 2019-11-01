@@ -2,8 +2,9 @@ Extension { #name : #ByteArray }
 
 { #category : #'*PyGate' }
 ByteArray >> representSmalltalkInPython [
-	| var |
-	var := ExternalVar new.
-	P sendObject: self andAssignTo: var name.
-	^ 'bytes(bytearray(', var ref, '))'
+	| str |
+	str := self inject: 'bytes(b''' into: [ :soFar :thisByte |
+		soFar, '\x', (thisByte printStringBase: 16 nDigits: 2) ] .
+	
+	^ str, ''')'
 ]

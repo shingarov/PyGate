@@ -124,6 +124,16 @@ PTest >> testReadVarValue [
 ]
 
 { #category : #tests }
+PTest >> testSendByteArrayToP [
+	| d |
+	d := #[1 2 3 4 5 6 7 8].
+	self
+		assert: (P sendAndFetchObject: d)
+		equals: d
+	
+]
+
+{ #category : #tests }
 PTest >> testSendJsonToP [
 	| d |
 	d := self exampleDict.

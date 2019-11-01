@@ -208,6 +208,13 @@ P class >> send: aString [
 	
 ]
 
+{ #category : #'as yet unclassified' }
+P class >> sendAndAssignByteArray: aByteArray [
+	"ByteArray is special in that although it can be JSONed successfully,
+	the result is alist  of integers, which is not what we want."
+	^P evalAndAssign: aByteArray representSmalltalkInPython
+]
+
 { #category : #'wire protocol' }
 P class >> sendAndAssignList: aSequenceableCollection [
 	| s |
@@ -220,6 +227,8 @@ P class >> sendAndAssignList: aSequenceableCollection [
 { #category : #'wire protocol' }
 P class >> sendAndAssignObject: anObject [
 	| var |
+	
+	(anObject isKindOf: ByteArray) ifTrue: [ ^self sendAndAssignByteArray: anObject ].
 	var := ExternalVar new.
 	self sendObject: anObject andAssignTo: var name.
 	^var
@@ -228,6 +237,19 @@ P class >> sendAndAssignObject: anObject [
 { #category : #'as yet unclassified' }
 P class >> sendAndFetchObject: x [ 
 	^P fetchVar: (P sendAndAssignObject: x)
+]
+
+{ #category : #'as yet unclassified' }
+P class >> sendByteArray: aByteArray andAssignTo: aVariable [
+	"ByteArray is special in that although it can be JSONed successfully,
+	the result is alist  of integers, which is not what we want."
+	| answer |
+	answer := self current send: ':', aVariable.
+	answer = ':' ifFalse: [ self error ].
+	answer := self current send: aByteArray representSmalltalkInPython.
+	answer = '+' ifFalse: [ self error ].
+	^ExternalVar named: aVariable 
+	
 ]
 
 { #category : #private }
