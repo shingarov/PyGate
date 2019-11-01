@@ -34,6 +34,11 @@ External class >> var: v [
 		yourself
 ]
 
+{ #category : #access }
+External >> @ attrName [
+	^self at: attrName
+]
+
 { #category : #dispatching }
 External >> _dispatch: id arguments: args ifFail: failBlock [
 	| callable |
