@@ -43,8 +43,18 @@ External >> @ attrName [
 External >> _dispatch: id arguments: args ifFail: failBlock [
 	| callable |
 	callable := self ref, '.', id.
+	(args size = 1 and: [ args first isCollection and: [ args first isSequenceable not ] ])  ifTrue: [
+		"we have named arguments given as a Dictionary"
+		^GenericPyObject create: callable constructorNamedArgs: args first
+	].
+	"a non-orthogonal special case is when the one argument is an association"
+	(args size = 1 and: [ args first isKindOf: Association ]) ifTrue: [
+		| dict |
+		dict := Dictionary newFromAssociations: (Array with: args first).
+		^self _dispatch: id arguments: (Array with: dict) ifFail: failBlock
+	].
+	"everything else should be sequential arguments"
 	^GenericPyObject create: callable constructorSequentialArgs: args
-		 
 ]
 
 { #category : #access }

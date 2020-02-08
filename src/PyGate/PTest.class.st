@@ -142,3 +142,13 @@ PTest >> testSendJsonToP [
 		equals: d
 	
 ]
+
+{ #category : #tests }
+PTest >> testSendLongByteArrayToP [
+	| d |
+	d := ByteArray new: 4096*2 withAll: 123.
+	self
+		assert: (P sendAndFetchObject: d)
+		equals: d
+	
+]
