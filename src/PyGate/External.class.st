@@ -29,7 +29,7 @@ External class >> sendSmalltalkObject: anObject [
 
 { #category : #private }
 External class >> var: v [
-	^self new 
+	^self basicNew 
 		var: v;
 		yourself
 ]
