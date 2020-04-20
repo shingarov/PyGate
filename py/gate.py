@@ -2,6 +2,7 @@
 
 """
 
+import z3
 
 import pdb, traceback
 import inspect, sys, json
