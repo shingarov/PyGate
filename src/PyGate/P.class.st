@@ -11,7 +11,8 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'socket',
-		'mutex'
+		'mutex',
+		'smalltalkProxies'
 	],
 	#classInstVars : [
 		'current',
@@ -151,6 +152,7 @@ P class >> env: varName [
 P class >> eval: aString [
 	| answer |
 	answer := self rawEval: aString.
+	answer first = $! ifTrue: [ ^(PythonCallbackActivation new: answer allButFirst) activateAndReturn ].
 	^self deserialize: answer
 ]
 
@@ -254,11 +256,10 @@ P class >> sendByteArray: aByteArray andAssignTo: aVariable [
 
 { #category : #private }
 P class >> sendObject: anObject andAssignTo: aVariable [
-	| s answer |
-	s := NeoJSONWriter toString: anObject.
+	| answer |
 	answer := self current send: ':', aVariable.
 	answer = ':' ifFalse: [ self error ].
-	answer := self current send: s.
+	answer := self current send: anObject serializeOrRemember.
 	answer = '+' ifFalse: [ self error ].
 	^ExternalVar named: aVariable 
 	
@@ -266,6 +267,7 @@ P class >> sendObject: anObject andAssignTo: aVariable [
 
 { #category : #connection }
 P >> connect [
+	smalltalkProxies := Dictionary new.
 	P initDeserializationRegistry. "TODO: This does not belong here!"
 	socket := SocketStream openConnectionToHost: self ip port: 7000.
 	mutex := Mutex new 
@@ -286,4 +288,9 @@ P >> send: aString [
 	^mutex critical: [ socket nextPutAllFlush: aString, String crlf.
 		socket upToAll: String crlf ]
 	
+]
+
+{ #category : #accessing }
+P >> smalltalk [
+	^smalltalkProxies 
 ]
