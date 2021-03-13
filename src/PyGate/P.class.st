@@ -283,6 +283,21 @@ P >> isConnected [
 	^socket notNil and: [ ^socket isConnected ]
 ]
 
+{ #category : #'smalltalk heap' }
+P >> keyForSmalltalkObject: obj [
+	^smalltalkProxies
+		keyAtIdentityValue: obj
+		ifAbsent: [ | newKey |
+			newKey := self newKey.
+			smalltalkProxies at: newKey put: obj.
+			^newKey ]
+]
+
+{ #category : #'smalltalk heap' }
+P >> newKey [
+	^9999999
+]
+
 { #category : #connection }
 P >> send: aString [
 	^mutex critical: [ socket nextPutAllFlush: aString, String crlf.
@@ -290,7 +305,7 @@ P >> send: aString [
 	
 ]
 
-{ #category : #accessing }
-P >> smalltalk [
-	^smalltalkProxies 
+{ #category : #'smalltalk heap' }
+P >> smalltalkObjectAtKey: k [
+	^smalltalkProxies at: k
 ]

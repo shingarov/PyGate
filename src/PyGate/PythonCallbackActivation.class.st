@@ -51,7 +51,7 @@ PythonCallbackActivation >> receiver [
 	stHeapXXXX := self ident.
 	(stHeapXXXX first: 6) = 'stHeap' ifFalse: [self error].
 	xxxx := Integer readFrom: (stHeapXXXX allButFirst: 6) base: 32.
-	^P current smalltalk at: xxxx
+	^P current smalltalkObjectAtKey: xxxx
 ]
 
 { #category : #accessing }

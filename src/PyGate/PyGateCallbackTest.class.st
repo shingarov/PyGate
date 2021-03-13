@@ -10,6 +10,18 @@ PyGateCallbackTest >> examplePoint [
 ]
 
 { #category : #tests }
+PyGateCallbackTest >> testIdenticalSmalltalkHeapObjects [ 
+
+| d p1 p2 |
+d := Dictionary new.
+p1 := 3@4.
+p2 := 3@4.
+d at: 1 put: p1.
+
+
+]
+
+{ #category : #tests }
 PyGateCallbackTest >> testSendSmalltalkObject [
 	| aPoint p result |
 	"A Smalltalk object non-serializable via JSON,
