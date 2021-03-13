@@ -98,7 +98,7 @@ class SmalltalkRMIActivation:
         self.kwargs = kwargs
 
     def perform(self):
-        k = 'rmiAct' + str(random.randint(0,99999))
+        k = 'rmiAct' + str(random.randint(0,9999999))
         e[k] = self
         self.gate.write_one('!'+k)
         try:
