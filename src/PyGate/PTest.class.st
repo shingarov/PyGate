@@ -83,11 +83,13 @@ PTest >> testInstantiateNestedDictionary2 [
 	d := GenericPyObject create: 'dict' constructorNamedArgs: dict.
 
 	"VERY TRICKY here.
-	Because JSON failed to deserialize one of the values nested
-	deep in the tree of values, the whole answer is not deserialized
-	but comes back as an opaque Python object."
-	self assert: (d isKindOf: GenericPyObject).
-	gen := P compute: d ref, '["o"]'.
+	As opposed to pre-Ghost, the 'object' nested	deep in
+	the tree of values successully gets passed back and forth,
+	so we get our dictionary back, and the 'o' key points to
+	the GenericPyObject standing for the 'object' on the Python heap."
+	self assert: (d isKindOf: Dictionary).
+	
+	gen := d at: 'o'.
 	self assert: (gen isKindOf: GenericPyObject).
 	self assert: gen pyClass name equals: 'object'
 ]

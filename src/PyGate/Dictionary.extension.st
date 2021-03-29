@@ -10,11 +10,12 @@ Dictionary >> representSmalltalkInPython [
 
 
 	r := self associations inject: '{ ' into: [ :soFar :thisTime |
-		| ref keyRef |
+		| ref key keyRef |
 		ref := thisTime value representSmalltalkInPython.
-		keyRef := thisTime key isInteger 
-			ifTrue: [ thisTime key representSmalltalkInPython ]
-			ifFalse: [ thisTime key ].
+		key := thisTime key.
+		keyRef := key isInteger 
+			ifTrue: [ key representSmalltalkInPython ]
+			ifFalse: [ '"',key,'"' ].
 		soFar,
 		keyRef,
 		' : ',
